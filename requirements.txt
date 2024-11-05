@@ -1,0 +1,16 @@
+blinker==1.8.2
+click==8.1.7
+colorama==0.4.6
+Flask==3.0.3
+Flask-Cors==4.0.1
+itsdangerous==2.2.0
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+Werkzeug==3.0.3
+python-dotenv==0.19.2
+azure-monitor-opentelemetry==1.6.2
+azure-monitor-opentelemetry-exporter==1.0.0b31
+opentelemetry-instrumentation-flask==0.48b0
+opentelemetry-instrumentation-logging==0.48b0
+py-healthcheck==1.10.1
+apispec==5.1.1

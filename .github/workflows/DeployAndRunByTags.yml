@@ -1,0 +1,67 @@
+name: Deploy and Run by Tags
+env:
+  REPO_NAME: ${{ github.event.repository.name }}
+  IMAGE_VERSION: ${{ github.sha }}
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+    - name: 'Get tag'
+      id: tag
+      uses: devops-actions/action-get-tag@v1
+      
+    - name: 'Login via Docker'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ secrets.ACR_NAME }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - run: |
+        cd ${{ github.workspace }}
+        docker build -t ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ steps.tag.outputs.tag }} .
+        docker push ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ steps.tag.outputs.tag }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: 'Get tag'
+      id: tag
+      uses: devops-actions/action-get-tag@v1
+    - name: 'Deploy Container Instance'
+      uses: azure/aci-deploy@v1
+      with:
+        location: eastus
+        name: navarroaplicada2024
+        resource-group: recurso-aplicada
+        image: ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ steps.tag.outputs.tag }}
+        dns-name-label: navarroaplicada2024-${{ github.run_id }}-${{ github.run_attempt }}
+        registry-username: ${{ secrets.REGISTRY_USERNAME }}
+        registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+        ports: 5000
+        cpu: 1
+        memory: 1
+    
+    - name: 'Logout from Azure'
+      run: |
+        az logout
