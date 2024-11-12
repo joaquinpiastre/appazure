@@ -24,16 +24,16 @@ jobs:
     - name: 'Create Azure Service Principal'
       id: sp
       run: |
-        az ad sp create-for-rbac --name ${{ env.AZURE_RESOURCE_GROUP }} --role Contributor --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }} --sdk-auth > sp.json
+        az ad sp create-for-rbac --name ${{ secrets.AZURE_RESOURCE_GROUP }} --role Contributor --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }} --sdk-auth > sp.json
         cat sp.json
 
     - name: 'Deploy PostgreSQL Database'
       run: |
-        az postgres server create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ env.AZURE_RESOURCE_GROUP }}-db --location eastus --admin-user piastrellini --admin-password enperladomen2024_ --sku-name B_Gen5_1
+        az postgres server create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_RESOURCE_GROUP }}-db --location eastus --admin-user piastrellini --admin-password enperladomen2024_ --sku-name B_Gen5_1
 
     - name: 'Configure PostgreSQL Firewall'
       run: |
-        az postgres server firewall-rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --server ${{ env.AZURE_RESOURCE_GROUP }}-db --name AllowAllAzureIPs --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+        az postgres server firewall-rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --server ${{ secrets.AZURE_RESOURCE_GROUP }}-db --name AllowAllAzureIPs --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
 
     - name: 'Logout from Azure'
       run: |
