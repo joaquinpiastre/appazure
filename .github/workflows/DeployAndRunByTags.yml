@@ -3,8 +3,7 @@ env:
   REPO_NAME: ${{ github.event.repository.name }}
   IMAGE_VERSION: ${{ github.sha }}
 on:
-  push:
-    tags: ['v*.*.*']
+  workflow_dispatch:
 permissions:
   id-token: write
   contents: read
