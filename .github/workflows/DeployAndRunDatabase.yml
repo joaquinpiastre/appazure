@@ -1,0 +1,40 @@
+name: Deploy and Run Database
+env:
+  REPO_NAME: ${{ github.event.repository.name }}
+on:
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Create Azure Service Principal'
+      id: sp
+      run: |
+        az ad sp create-for-rbac --name ${{ env.REPO_NAME }} --role Contributor --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }} --sdk-auth > sp.json
+        cat sp.json
+
+    - name: 'Deploy PostgreSQL Database'
+      run: |
+        az postgres server create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ env.REPO_NAME }}-db --location eastus --admin-user myadmin --admin-password mypassword123 --sku-name B_Gen5_1
+
+    - name: 'Configure PostgreSQL Firewall'
+      run: |
+        az postgres server firewall-rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --server ${{ env.REPO_NAME }}-db --name AllowAllAzureIPs --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+
+    - name: 'Logout from Azure'
+      run: |
+        az logout
