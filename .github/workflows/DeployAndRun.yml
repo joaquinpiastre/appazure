@@ -15,19 +15,17 @@ jobs:
         shell: bash
     steps:
     - name: 'Checkout GitHub Action'
-      uses: actions/checkout@v3
-
+      uses: actions/checkout@v4
+     
     - name: 'Login via Docker'
-      uses: azure/docker-login@v1
+      uses: azure/docker-login@v2
       with:
-        login-server: ${{ secrets.ACR_NAME }}
+        login-server: ${{ secrets.ACR_NAME_URL }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-
     - run: |
-        cd ${{ github.workspace }}
-        docker build -t ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ github.sha }} .
-        docker push ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ github.sha }}
+        docker build . -t ${{ secrets.ACR_NAME_URL }}/${{env.REPO_NAME}}:${{ github.sha }}
+        docker push ${{ secrets.ACR_NAME_URL }}/${{env.REPO_NAME}}:${{ github.sha }}
 
   deploy:
     needs: build
@@ -37,24 +35,25 @@ jobs:
         shell: bash
     steps:
     - name: 'Login via Azure CLI'
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
-    - name: 'Deploy Container Instance'
+    - name: 'deploy Container Instance'
       uses: azure/aci-deploy@v1
       with:
         location: eastus
-        name: navarroaplicada2024
-        resource-group: recurso-aplicada
-        image: ${{ secrets.ACR_NAME }}/${{env.REPO_NAME}}:${{ github.sha }}
-        dns-name-label: navarroaplicada2024-${{ github.run_id }}-${{ github.run_attempt }}
+        name: flask-estructura
+        resource-group: ${{ secrets.AZURE_RESOURCE_GROUP }}
+        image: ${{ secrets.ACR_NAME_URL }}/${{env.REPO_NAME}}:${{ github.sha }}
+        dns-name-label: flask-estructura-${{ github.run_id }}-${{ github.run_attempt }}
         registry-username: ${{ secrets.REGISTRY_USERNAME }}
         registry-password: ${{ secrets.REGISTRY_PASSWORD }}
         ports: 5000
         cpu: 1
         memory: 1
     
-    - name: 'Logout from Azure'
+    - name: 'logout'
       run: |
         az logout
+      
