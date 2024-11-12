@@ -24,7 +24,7 @@ jobs:
     - name: 'Create Azure Service Principal'
       id: sp
       run: |
-        az ad sp create-for-rbac --name ${{ secrets.AZURE_RESOURCE_GROUP }} --role Contributor --scopes /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }} > sp.json
+        az ad sp create-for-rbac --name ${{ secrets.AZURE_RESOURCE_GROUP }} --role Contributor --scopes /subscriptions/53f57d56-0804-4d6f-8112-4fa65c7b5943 > sp.json
         cat sp.json
 
     - name: 'Deploy PostgreSQL Database'
